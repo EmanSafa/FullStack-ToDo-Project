@@ -1,3 +1,4 @@
+import Button from "../Components/UI/Button";
 import Input from "./../Components/UI/Input";
 const LoginPage = () => {
   return (
@@ -8,7 +9,7 @@ const LoginPage = () => {
       <form className="space-y-4">
         <Input placeholder="Email address" />
         <Input placeholder="Password" />
-        <button className="w-full">Login</button>
+        <Button>Login</Button>
       </form>
     </div>
   );

@@ -4,6 +4,12 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { REGISTERFORM } from "./../data/index";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { registerSchema } from "../Validation";
+import axiosInstance from "../Config/axios.config";
+import { toast } from "react-hot-toast";
+import { useState } from "react";
+import Button from "../Components/UI/Button";
+import type { AxiosError } from "axios";
+import type { IErrorResponse } from "../Intetface";
 
 interface IFormInput {
   username: string;
@@ -12,6 +18,7 @@ interface IFormInput {
 }
 
 const RegisterPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -21,8 +28,43 @@ const RegisterPage = () => {
   });
 
   // ** Handlers
-  const onSubmit: SubmitHandler<IFormInput> = (data) => {
+  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     console.log(data);
+
+    // ** 1 - pinding
+    setIsLoading(true);
+    try {
+      // ** 2 - Fulfilled => success => (optional)
+      const { status } = await axiosInstance.post("/auth/local/register", data);
+      console.log(status);
+      if (status === 200) {
+        toast.success(
+          "You will navigate to the login page after 2 seconds to login.",
+          {
+            position: "bottom-center",
+            duration: 1500,
+            style: {
+              backgroundColor: "black",
+              color: "white",
+              width: "fit-content",
+            },
+          }
+        );
+      }
+    } catch (error) {
+      const errorObj = error as AxiosError<IErrorResponse>;
+      toast.error(`${errorObj.response?.data?.error?.message}`, {
+        position: "bottom-center",
+        duration: 1500,
+        style: {
+          backgroundColor: "black",
+          color: "white",
+          width: "fit-content",
+        },
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // ** Renders
@@ -50,9 +92,9 @@ const RegisterPage = () => {
         className="space-y-4 w-full flex flex-col justify-center items-center"
       >
         {renderRegisterForm}
-        <button className="w-full bg-indigo-600 p-3 rounded-md">
+        <Button fullWidth isLoading={isLoading}>
           Register
-        </button>
+        </Button>
       </form>
     </div>
   );
