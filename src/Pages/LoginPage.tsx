@@ -1,15 +1,97 @@
+import InputErrorComponent from "../Components/InputErrorComponent";
 import Button from "../Components/UI/Button";
+import { LOGINFORM } from "../data";
 import Input from "./../Components/UI/Input";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useState } from "react";
+import { loginSchema } from "../Validation";
+import toast from "react-hot-toast";
+import type { AxiosError } from "axios";
+import type { IErrorResponse } from "../Intetface";
+import axiosInstance from "../Config/axios.config";
+
+interface IFormInput {
+  identifier: string;
+  password: string;
+}
+
 const LoginPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<IFormInput>({
+    resolver: yupResolver(loginSchema),
+  });
+
+  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
+    console.log(data);
+
+    // ** 1 - pinding
+    setIsLoading(true);
+    try {
+      // ** 2 - Fulfilled => success => (optional)
+      const { status } = await axiosInstance.post("/auth/local", data);
+      console.log(status);
+      if (status === 200) {
+        toast.success(
+          "You will navigate to the Home page after 2 seconds .",
+          {
+            position: "bottom-center",
+            duration: 1500,
+            style: {
+              backgroundColor: "black",
+              color: "white",
+              width: "fit-content",
+            },
+          }
+        );
+      }
+    } catch (error) {
+      const errorObj = error as AxiosError<IErrorResponse>;
+      toast.error(`${errorObj.response?.data?.error?.message}`, {
+        position: "bottom-center",
+        duration: 1500,
+        style: {
+          backgroundColor: "black",
+          color: "white",
+          width: "fit-content",
+        },
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderLoginForm = LOGINFORM.map(
+    ({ name, placeholder, type, validation }, idx) => {
+      return (
+        <div key={idx} className="w-full">
+          <Input
+            placeholder={placeholder}
+            {...register(name, validation)}
+            type={type}
+          />
+          {errors[name] && <InputErrorComponent msg={errors[name]?.message} />}
+        </div>
+      );
+    }
+  );
   return (
     <div className="max-w-md mx-auto">
       <h2 className="text-center mb-4 text-3xl font-semibold">
         Login to get access !
       </h2>
-      <form className="space-y-4">
-        <Input placeholder="Email address" />
-        <Input placeholder="Password" />
-        <Button>Login</Button>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-4 w-full flex flex-col justify-center items-center"
+      >
+        {renderLoginForm}
+        <Button fullWidth isLoading={isLoading}>
+          Login
+        </Button>
       </form>
     </div>
   );

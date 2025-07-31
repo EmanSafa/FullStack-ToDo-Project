@@ -1,5 +1,15 @@
 export interface IRegisterInput {
-  name: 'username' | 'password' | 'email';
+  name: "username" | "password" | "email";
+  placeholder: string;
+  type: string;
+  validation: {
+    required?: boolean;
+    minLength?: number;
+    pattern?: RegExp;
+  };
+}
+export interface ILoginForm {
+  name: "password" | "identifier";
   placeholder: string;
   type: string;
   validation: {
@@ -10,7 +20,7 @@ export interface IRegisterInput {
 }
 
 export interface IErrorResponse {
-  error:{
-    message?:string
-  }
+  error: {
+    message?: string;
+  };
 }

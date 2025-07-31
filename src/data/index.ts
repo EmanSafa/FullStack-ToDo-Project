@@ -1,4 +1,4 @@
-import type { IRegisterInput } from "../Intetface";
+import type { ILoginForm, IRegisterInput } from "../Intetface";
 
 export const REGISTERFORM: IRegisterInput[] = [
   {
@@ -12,6 +12,26 @@ export const REGISTERFORM: IRegisterInput[] = [
   },
   {
     name: "email",
+    placeholder: "email",
+    type: "email",
+    validation: {
+      required: true,
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    },
+  },
+  {
+    name: "password",
+    placeholder: "password",
+    type: "password",
+    validation: {
+      required: true,
+      minLength: 6,
+    },
+  },
+];
+export const LOGINFORM: ILoginForm[] = [
+  {
+    name: "identifier",
     placeholder: "email",
     type: "email",
     validation: {
