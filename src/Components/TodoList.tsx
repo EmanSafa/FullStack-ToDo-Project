@@ -14,12 +14,15 @@ const TodoList = () => {
   //States
   const [isEditModelOpen, setIsEditModelOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
+
   const [todoToEdit, setTodoToEdit] = useState<ITodo>({
     id: 0,
     title: "",
     description: "",
     documentId: "",
   });
+
   //Handlers
   const onCloseEditModel = () => {
     setTodoToEdit({ id: 0, title: "", description: "", documentId: "" });
@@ -29,6 +32,19 @@ const TodoList = () => {
     setTodoToEdit(todo);
     setIsEditModelOpen(true);
   };
+  const openConfirmModal = (todo: ITodo) => {
+    setTodoToEdit(todo);
+    setIsOpenConfirmModal(true);
+  };
+  const closeConfirmModal = () => {
+    setTodoToEdit({
+      id: 0,
+      title: "",
+      description: "",
+      documentId: "",
+    });
+    setIsOpenConfirmModal(false);
+  };
   const onChangeHandler = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -37,6 +53,23 @@ const TodoList = () => {
       ...todoToEdit,
       [name]: value,
     });
+  };
+  const onRemove = async () => {
+    const { documentId } = todoToEdit;
+
+    try {
+      const { status } = await axiosInstance.delete(`/todos/${documentId}`, {
+        headers: {
+          Authorization: `Bearer ${userData.jwt}`,
+        },
+      });
+      console.log(status);
+      if (status === 204) {
+        closeConfirmModal();
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
   const onSubmitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,6 +95,7 @@ const TodoList = () => {
       setIsUpdating(false);
     }
   };
+
   const { isLoading, data } = useAuthanticatedQuery({
     queryKey: ["todoList", `${todoToEdit.id}`],
     url: "/users/me?populate[todos][filters][publishedAt][$notNull]=true",
@@ -81,7 +115,10 @@ const TodoList = () => {
               key={todo.id}
               className="flex items-center justify-between hover:bg-zinc-700 duration-300 p-3 rounded-md "
             >
-              <p className="w-full font-semibold"> {todo.title}</p>
+              <p className="w-full font-semibold">
+                {" "}
+                {todo.id} - {todo.title}
+              </p>
               <div className="flex items-center justify-end w-full space-x-3">
                 <Button
                   variant={"default"}
@@ -90,7 +127,11 @@ const TodoList = () => {
                 >
                   Edit
                 </Button>
-                <Button variant={"danger"} size={"sm"}>
+                <Button
+                  variant={"danger"}
+                  size={"sm"}
+                  onClick={() => openConfirmModal(todo)}
+                >
                   Remove
                 </Button>
               </div>
@@ -100,6 +141,8 @@ const TodoList = () => {
       ) : (
         <h3>No Todos yet</h3>
       )}
+      {/* Edit Todo modal */}
+
       <Modal
         isClosed={onCloseEditModel}
         isOpen={isEditModelOpen}
@@ -126,6 +169,22 @@ const TodoList = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+      {/* Delete Todo confirm modal */}
+      <Modal
+        isOpen={isOpenConfirmModal}
+        isClosed={closeConfirmModal}
+        title="Are you sure you want to remove this Todo from your Store?"
+        description="Deleting this Todo will remove it permanently from your inventory. Any associated data, sales history, and other related information will also be deleted. Please make sure this is the intended action."
+      >
+        <div className="flex items-center spave-x-3 gap-2">
+          <Button variant={"danger"} fullWidth onClick={onRemove}>
+            Yes , remove
+          </Button>
+          <Button fullWidth variant={"cancel"} onClick={closeConfirmModal}>
+            Cancel
+          </Button>
+        </div>
       </Modal>
     </div>
   );
