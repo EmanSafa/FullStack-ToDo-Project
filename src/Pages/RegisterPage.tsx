@@ -10,6 +10,7 @@ import { useState } from "react";
 import Button from "../Components/UI/Button";
 import type { AxiosError } from "axios";
 import type { IErrorResponse } from "../Intetface";
+import { Link, useNavigate } from "react-router-dom";
 
 interface IFormInput {
   username: string;
@@ -18,6 +19,7 @@ interface IFormInput {
 }
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const {
     register,
@@ -50,6 +52,9 @@ const RegisterPage = () => {
             },
           }
         );
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       }
     } catch (error) {
       const errorObj = error as AxiosError<IErrorResponse>;
@@ -62,7 +67,7 @@ const RegisterPage = () => {
           width: "fit-content",
         },
       });
-    } finally {
+    }finally {
       setIsLoading(false);
     }
   };
@@ -95,6 +100,12 @@ const RegisterPage = () => {
         <Button fullWidth isLoading={isLoading}>
           Register
         </Button>
+        <p className="text-sm text-gray-400">
+          Have an accout?{" "}
+          <Link to="/login" className="underline text-blue-500">
+            Login
+          </Link>
+        </p>
       </form>
     </div>
   );

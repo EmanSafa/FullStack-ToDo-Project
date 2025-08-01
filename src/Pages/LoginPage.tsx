@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import type { AxiosError } from "axios";
 import type { IErrorResponse } from "../Intetface";
 import axiosInstance from "../Config/axios.config";
+import { Link } from "react-router-dom";
 
 interface IFormInput {
   identifier: string;
@@ -33,21 +34,27 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       // ** 2 - Fulfilled => success => (optional)
-      const { status } = await axiosInstance.post("/auth/local", data);
+      const { status, data: resData } = await axiosInstance.post(
+        "/auth/local",
+        data
+      );
+      console.log(resData);
       console.log(status);
       if (status === 200) {
-        toast.success(
-          "You will navigate to the Home page after 2 seconds .",
-          {
-            position: "bottom-center",
-            duration: 1500,
-            style: {
-              backgroundColor: "black",
-              color: "white",
-              width: "fit-content",
-            },
-          }
-        );
+        toast.success("You will navigate to the Home page after 2 seconds .", {
+          position: "bottom-center",
+          duration: 1500,
+          style: {
+            backgroundColor: "black",
+            color: "white",
+            width: "fit-content",
+          },
+        });
+        localStorage.setItem("loggedInUser", JSON.stringify(resData));
+
+        setTimeout(() => {
+          location.replace("/");
+        }, 2000);
       }
     } catch (error) {
       const errorObj = error as AxiosError<IErrorResponse>;
@@ -92,6 +99,12 @@ const LoginPage = () => {
         <Button fullWidth isLoading={isLoading}>
           Login
         </Button>
+        <p className="text-sm text-gray-400">
+          No an accout?{" "}
+          <Link to="/register" className="underline text-blue-500">
+            Register
+          </Link>
+        </p>
       </form>
     </div>
   );
