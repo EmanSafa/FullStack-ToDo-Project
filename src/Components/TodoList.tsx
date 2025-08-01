@@ -3,7 +3,9 @@ import Button from "./UI/Button";
 import useAuthanticatedQuery from "../hooks/useAuthanticatedQuery";
 import Modal from "./UI/Modal";
 import Input from "./UI/Input";
-import { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import Textarea from "./UI/TextArea";
+import axiosInstance from "../Config/axios.config";
 
 const storageKey = "loggedInUser";
 const userDataString = localStorage.getItem(storageKey);
@@ -11,12 +13,57 @@ const userData = userDataString ? JSON.parse(userDataString) : null;
 const TodoList = () => {
   //States
   const [isEditModelOpen, setIsEditModelOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [todoToEdit, setTodoToEdit] = useState<ITodo>({
+    id: 0,
+    title: "",
+    description: "",
+    documentId: "",
+  });
   //Handlers
-  const onToggleEditModel = () => {
-    setIsEditModelOpen((prev) => !prev);
+  const onCloseEditModel = () => {
+    setTodoToEdit({ id: 0, title: "", description: "", documentId: "" });
+    setIsEditModelOpen(false);
+  };
+  const onOpenModel = (todo: ITodo) => {
+    setTodoToEdit(todo);
+    setIsEditModelOpen(true);
+  };
+  const onChangeHandler = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setTodoToEdit({
+      ...todoToEdit,
+      [name]: value,
+    });
+  };
+  const onSubmitHandler = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    const { title, description, documentId } = todoToEdit;
+    try {
+      const { status } = await axiosInstance.put(
+        `/todos/${documentId}`,
+        { data: { title, description } },
+        {
+          headers: {
+            Authorization: `Bearer ${userData.jwt}`,
+          },
+        }
+      );
+      console.log(status);
+      if (status === 200) {
+        onCloseEditModel();
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
   const { isLoading, data } = useAuthanticatedQuery({
-    queryKey: ["Todos"],
+    queryKey: ["todoList", `${todoToEdit.id}`],
     url: "/users/me?populate[todos][filters][publishedAt][$notNull]=true",
     config: {
       headers: {
@@ -39,7 +86,7 @@ const TodoList = () => {
                 <Button
                   variant={"default"}
                   size={"sm"}
-                  onClick={() => setIsEditModelOpen(true)}
+                  onClick={() => onOpenModel(todo)}
                 >
                   Edit
                 </Button>
@@ -54,20 +101,31 @@ const TodoList = () => {
         <h3>No Todos yet</h3>
       )}
       <Modal
-        isClosed={onToggleEditModel}
+        isClosed={onCloseEditModel}
         isOpen={isEditModelOpen}
         title="Edit This Todo"
       >
-        <Input />
-        <div className="flex justify-between mt-3 text-sm gap-2">
-          <Button className="" fullWidth>
-            {" "}
-            Update
-          </Button>
-          <Button fullWidth variant={"cancel"} onClick={onToggleEditModel}>
-            Cancel
-          </Button>
-        </div>
+        <form onSubmit={onSubmitHandler} className="space-y-3">
+          <Input
+            name="title"
+            value={todoToEdit.title}
+            onChange={onChangeHandler}
+          />
+          <Textarea
+            name="description"
+            value={todoToEdit.description}
+            onChange={onChangeHandler}
+          />
+          <div className="flex justify-between  text-sm gap-2">
+            <Button isLoading={isUpdating} fullWidth>
+              {" "}
+              Update
+            </Button>
+            <Button fullWidth variant={"cancel"} onClick={onCloseEditModel}>
+              Cancel
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
