@@ -6,6 +6,7 @@ import Input from "./UI/Input";
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import Textarea from "./UI/TextArea";
 import axiosInstance from "../Config/axios.config";
+import TodoSkeleton from "./TodoSkeleton";
 
 const storageKey = "loggedInUser";
 const userDataString = localStorage.getItem(storageKey);
@@ -105,7 +106,14 @@ const TodoList = () => {
       },
     },
   });
-  if (isLoading) return <h3>Loading ...</h3>;
+  if (isLoading)
+    return (
+      <div className="space-y-1">
+        {Array.from({ length: 3 }, (_, idx) => (
+          <TodoSkeleton key={idx} />
+        ))}
+      </div>
+    );
   return (
     <div className="space-y-3">
       {data.length ? (
