@@ -7,6 +7,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import Textarea from "./UI/TextArea";
 import axiosInstance from "../Config/axios.config";
 import TodoSkeleton from "./TodoSkeleton";
+import { faker } from "@faker-js/faker";
 
 const storageKey = "loggedInUser";
 const userDataString = localStorage.getItem(storageKey);
@@ -168,6 +169,33 @@ const TodoList = () => {
         ))}
       </div>
     );
+
+  const onGenerateTodos = async () => {
+    for (let i = 0; i < 90; i++) {
+      try {
+        const { data } = await axiosInstance.post(
+          `/todos`,
+          {
+            data: {
+              title: faker.word.words(3),
+              description: faker.lorem.paragraph(2),
+              user: [userData.user.id],
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${userData.jwt}`,
+            },
+          }
+        );
+        console.log(data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsUpdating(false);
+      }
+    }
+  };
   return (
     <div className="space-y-3">
       <div className=" mx-auto my-10">
@@ -181,7 +209,7 @@ const TodoList = () => {
             <Button variant={"default"} fullWidth onClick={openAddModal}>
               Post new ToDo
             </Button>
-            <Button variant={"outline"} fullWidth onClick={() => {}}>
+            <Button variant={"outline"} fullWidth onClick={onGenerateTodos}>
               Generate ToDos
             </Button>
           </div>
