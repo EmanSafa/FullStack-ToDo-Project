@@ -152,7 +152,7 @@ const TodoList = () => {
     }
   };
 
-  const { isLoading, data } = useAuthanticatedQuery({
+  const { isLoading, data , isFetching } = useAuthanticatedQuery({
     queryKey: ["todoList", `${queryVersion}`],
     url: "/users/me?populate[todos][filters][publishedAt][$notNull]=true",
     config: {
@@ -161,7 +161,7 @@ const TodoList = () => {
       },
     },
   });
-  if (isLoading)
+  if (isLoading || isFetching)
     return (
       <div className="space-y-1">
         {Array.from({ length: 3 }, (_, idx) => (
