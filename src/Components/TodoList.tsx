@@ -125,14 +125,14 @@ const TodoList = () => {
       setIsUpdating(false);
     }
   };
-  const onSubmitAddHandler = async (e: FormEvent<HTMLFormElement>) => {
+  const onSubmitAddTodo = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsUpdating(true);
     const { title, description } = todoToAdd;
     try {
       const { status } = await axiosInstance.post(
         `/todos`,
-        { data: { title, description } },
+        { data: { title, description, user: [userData.user.id] } },
         {
           headers: {
             Authorization: `Bearer ${userData.jwt}`,
@@ -170,9 +170,23 @@ const TodoList = () => {
     );
   return (
     <div className="space-y-3">
-      <Button variant={"default"} fullWidth onClick={openAddModal}>
-        Post new ToDo
-      </Button>
+      <div className=" mx-auto my-10">
+        {isLoading ? (
+          <div className="flex items-center gap-5  ">
+            <div className=" h-9  bg-gray-300 rounded-md dark:bg-gray-700 w-full"></div>
+            <div className=" h-9  bg-gray-300 rounded-md dark:bg-gray-700 w-full"></div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-5">
+            <Button variant={"default"} fullWidth onClick={openAddModal}>
+              Post new ToDo
+            </Button>
+            <Button variant={"outline"} fullWidth onClick={() => {}}>
+              Generate ToDos
+            </Button>
+          </div>
+        )}
+      </div>
       {data.length ? (
         data.map((todo: ITodo) => {
           return (
@@ -229,7 +243,12 @@ const TodoList = () => {
               {" "}
               Update
             </Button>
-            <Button fullWidth variant={"cancel"} onClick={onCloseEditModel}>
+            <Button
+              fullWidth
+              variant={"cancel"}
+              type="button"
+              onClick={onCloseEditModel}
+            >
               Cancel
             </Button>
           </div>
@@ -246,7 +265,12 @@ const TodoList = () => {
           <Button variant={"danger"} fullWidth onClick={onRemove}>
             Yes , remove
           </Button>
-          <Button fullWidth variant={"cancel"} onClick={closeConfirmModal}>
+          <Button
+            fullWidth
+            variant={"cancel"}
+            type="button"
+            onClick={closeConfirmModal}
+          >
             Cancel
           </Button>
         </div>
@@ -258,7 +282,7 @@ const TodoList = () => {
         isOpen={isOpenAddModal}
         title="Add New Todo"
       >
-        <form onSubmit={onSubmitAddHandler} className="space-y-3">
+        <form onSubmit={onSubmitAddTodo} className="space-y-3">
           <Input
             name="title"
             value={todoToAdd.title}
@@ -274,7 +298,12 @@ const TodoList = () => {
               {" "}
               Done
             </Button>
-            <Button fullWidth variant={"cancel"} onClick={closeAddModal}>
+            <Button
+              fullWidth
+              variant={"cancel"}
+              type="button"
+              onClick={closeAddModal}
+            >
               Cancel
             </Button>
           </div>
