@@ -16,9 +16,16 @@ const TodoList = () => {
   const [isEditModelOpen, setIsEditModelOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
+  const [isOpenAddModal, setIsOpenAddModal] = useState(false);
+  const [queryVersion, setqueryVersion] = useState(1);
 
   const [todoToEdit, setTodoToEdit] = useState<ITodo>({
     id: 0,
+    title: "",
+    description: "",
+    documentId: "",
+  });
+  const [todoToAdd, setTodoToAdd] = useState({
     title: "",
     description: "",
     documentId: "",
@@ -46,12 +53,32 @@ const TodoList = () => {
     });
     setIsOpenConfirmModal(false);
   };
+  const openAddModal = () => {
+    setIsOpenAddModal(true);
+  };
+  const closeAddModal = () => {
+    setTodoToAdd({
+      title: "",
+      description: "",
+      documentId: "",
+    });
+    setIsOpenAddModal(false);
+  };
   const onChangeHandler = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setTodoToEdit({
       ...todoToEdit,
+      [name]: value,
+    });
+  };
+  const onChangeAddHandler = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setTodoToAdd({
+      ...todoToAdd,
       [name]: value,
     });
   };
@@ -67,6 +94,7 @@ const TodoList = () => {
       console.log(status);
       if (status === 204) {
         closeConfirmModal();
+        setqueryVersion((prev) => prev + 1);
       }
     } catch (error) {
       console.log(error);
@@ -89,6 +117,32 @@ const TodoList = () => {
       console.log(status);
       if (status === 200) {
         onCloseEditModel();
+        setqueryVersion((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  const onSubmitAddHandler = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    const { title, description } = todoToAdd;
+    try {
+      const { status } = await axiosInstance.post(
+        `/todos`,
+        { data: { title, description } },
+        {
+          headers: {
+            Authorization: `Bearer ${userData.jwt}`,
+          },
+        }
+      );
+      console.log(status);
+      if (status === 201) {
+        closeAddModal();
+        setqueryVersion((prev) => prev + 1);
       }
     } catch (error) {
       console.log(error);
@@ -98,7 +152,7 @@ const TodoList = () => {
   };
 
   const { isLoading, data } = useAuthanticatedQuery({
-    queryKey: ["todoList", `${todoToEdit.id}`],
+    queryKey: ["todoList", `${queryVersion}`],
     url: "/users/me?populate[todos][filters][publishedAt][$notNull]=true",
     config: {
       headers: {
@@ -116,6 +170,9 @@ const TodoList = () => {
     );
   return (
     <div className="space-y-3">
+      <Button variant={"default"} fullWidth onClick={openAddModal}>
+        Post new ToDo
+      </Button>
       {data.length ? (
         data.map((todo: ITodo) => {
           return (
@@ -193,6 +250,35 @@ const TodoList = () => {
             Cancel
           </Button>
         </div>
+      </Modal>
+      {/* Add Todo modal */}
+
+      <Modal
+        isClosed={closeAddModal}
+        isOpen={isOpenAddModal}
+        title="Add New Todo"
+      >
+        <form onSubmit={onSubmitAddHandler} className="space-y-3">
+          <Input
+            name="title"
+            value={todoToAdd.title}
+            onChange={onChangeAddHandler}
+          />
+          <Textarea
+            name="description"
+            value={todoToAdd.description}
+            onChange={onChangeAddHandler}
+          />
+          <div className="flex justify-between  text-sm gap-2">
+            <Button isLoading={isUpdating} fullWidth>
+              {" "}
+              Done
+            </Button>
+            <Button fullWidth variant={"cancel"} onClick={closeAddModal}>
+              Cancel
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
