@@ -215,8 +215,8 @@ const TodoList = () => {
           </div>
         )}
       </div>
-      {data.length ? (
-        data.map((todo: ITodo) => {
+      {data.todos.length ? (
+        data.todos.map((todo: ITodo) => {
           return (
             <div
               key={todo.id}

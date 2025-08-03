@@ -26,6 +26,9 @@ const Navbar = () => {
               <li className=" duration-200 font-semibold text-lg">
                 <NavLink to="/profile">Profile</NavLink>
               </li>
+              <li className=" duration-200 font-semibold text-lg">
+                <NavLink to="/todos">Todos</NavLink>
+              </li>
               <li>
                 <Button onClick={onLogOut}>LogOut</Button>
               </li>

@@ -10,6 +10,7 @@ import LoginPage from "../Pages/LoginPage";
 import RegisterPage from "../Pages/RegisterPage";
 import RootLayout from "../Pages/Layout";
 import PageNotFound from "../Pages/PageNotFound";
+import Todos from "../Pages/Todos";
 
 const storageKey = "loggedInUser";
 const userDataString = localStorage.getItem(storageKey);
@@ -52,7 +53,7 @@ const router = createBrowserRouter(
           path="register"
           element={
             <ProtectedRoute
-              isAllowed={!userData?.jwt} 
+              isAllowed={!userData?.jwt}
               redirectPath="/"
               data={userData}
             >
@@ -70,6 +71,30 @@ const router = createBrowserRouter(
               data={userData}
             >
               <h2>Profile page</h2>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <ProtectedRoute
+              isAllowed={userData?.jwt}
+              redirectPath="/profile"
+              data={userData}
+            >
+              <h2>Profile page</h2>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="todos"
+          element={
+            <ProtectedRoute
+              isAllowed={userData?.jwt}
+              redirectPath="/todos"
+              data={userData}
+            >
+              <Todos />
             </ProtectedRoute>
           }
         />
